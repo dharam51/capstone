@@ -1,3 +1,5 @@
+// Compile : p4c --target bmv2 --arch v1model --std p4-16 o3.p4
+
 #include <core.p4>
 #include <v1model.p4>
 
@@ -48,19 +50,40 @@ parser MyParser(packet_in packet, out headers hdr, inout metadata meta, inout st
     
     state compute_hash {
         meta.hash_value = hdr.ipv4.srcAddr % 256;  // Simple modulo-based hash
+        
         transition accept;
     }
 }
+
+
 
 // Action to set the bucket based on match in the table
 action set_bucket(inout metadata meta , bit<8> determined_bucket) {
     meta.bucket = determined_bucket;
 }
 
-register<bit<32>>(16384) ip_count_register; // Assuming a maximum of 16384 unique IP addresses to track
+register<bit<32>>(256) ip_count_register; // Assuming a maximum of 16384 unique IP addresses to track
 
 // P4 table for longest prefix match on hash value to determine bucket
 control MyIngress(inout headers hdr, inout metadata meta, inout standard_metadata_t standard_metadata) {
+    
+     // Action to forward the packet based on MAC address
+    action forward(bit<9> outPort) {
+        standard_metadata.egress_spec = outPort;
+    }
+    
+    // L2 forwarding table
+    table l2_forwarding {
+        key = {
+            hdr.ethernet.dstAddr: exact;
+        }
+        actions = {
+            forward;
+        }
+        size = 4096;
+        default_action = forward(0); // Default to port 0 if no match. Adjust as needed.
+    }
+    
     table tbl_select_level {
         key = {
             // lpm optimization was proposed in the paper to reduce total count of hashcalls.
@@ -82,8 +105,14 @@ control MyIngress(inout headers hdr, inout metadata meta, inout standard_metadat
         tbl_select_level.apply();  // Apply the table to determine bucket using LPM
         
         bit<32> current_count;
-        ip_count_register.read(current_count, hdr.ipv4.srcAddr); // Read the current count for the src IP
-        ip_count_register.write(hdr.ipv4.srcAddr, current_count + 1); // Increment and write back
+        ip_count_register.read(current_count, meta.hash_value); // Read the current count for the src IP
+        ip_count_register.write( meta.hash_value, current_count + 1); // Increment and write back
+
+        //ip_count_register.read(current_count, meta.hash_value); // Read the current count for the src IP
+        //ip_count_register.write(meta.hash_value, current_count + 1); // Increment and write back
+
+        // Then, L2 forwarding to make sure packets are forwarded correctly
+        l2_forwarding.apply();
     }
 }
 
