@@ -8,3 +8,5 @@
     Paper Implementation.
     1. Calculate hash value based on some flow key.(srcIP address)
     2. Use P4 lpm to decide buckets based on the hash value obtained.
+
+    Note : There are some cases where code do not perform as expected, because this implementation is approximation of tofino implementation but for bmv2 switch. Performance can be improved by selecting proper hash function and filling lpm table as appropriate.
