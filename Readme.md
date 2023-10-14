@@ -1,4 +1,4 @@
-    - This implementation is very minimum to understand implemented optimizations.
+    - This implementation is very minimum to understand implemented optimizations in the paper :https://www.usenix.org/system/files/nsdi22-paper-namkung.pdf
     - This can be extended to more complex use cases.
         - tables can be filled using `switch_cli` on control plane. Given we know nature of hash values.
         - More complex hash functions will give better results and variety of hash values to avoid collisions.
