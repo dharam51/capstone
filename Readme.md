@@ -54,9 +54,8 @@
 
     TODO : 
         1. Implement heavy flow key.
-        2. Explore future steps for each implementation.
-        3. Implement single univmon algorithm with all optimizations.
-
+        2. Implement different scenarios/examples.
+    
     Different Scenarios/Examples:
         - Multi level sketches can be implemented optimally using proposed optimizations.(univmon)
         - This implementation can be extended for variety of flowkey combinations
