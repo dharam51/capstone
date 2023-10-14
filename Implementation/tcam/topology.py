@@ -5,20 +5,10 @@ simple_switch_CLI :
     table_dump <table_name>
 
     - Forwarding table entries to add
-    table_add l2_forwarding forward 00:00:00:00:00:01 => 1
-    table_add l2_forwarding forward 00:00:00:00:00:02 => 2
+    table_add mac_to_switch_port_mapping forward 00:00:00:00:00:01 => 1
+    table_add mac_to_switch_port_mapping forward 00:00:00:00:00:02 => 2
     
-    - Buckets to set so that switch can map buckets based on lpm level condition.
-    table_add tbl_select_level set_bucket 0x00/2 => 1
-    table_add tbl_select_level set_bucket 0x40/2 => 2
-    table_add tbl_select_level set_bucket 0x80/2 => 3
-    table_add tbl_select_level set_bucket 0xC0/2 => 4
-
-    - Next Version:
-    table_add tbl_select_level set_bucket 10.1.2.3/32 => 1
-    table_add tbl_select_level set_bucket 10.1.2.4/32 => 2
-
-    - Working commands :: 
+    - Control Plane commands :: 
     table_add tbl_select_level set_bucket 131/32 => 1
     table_add tbl_select_level set_bucket 132/32 => 2
 

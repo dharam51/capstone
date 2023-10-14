@@ -1,6 +1,7 @@
 #include <core.p4>
 #include <v1model.p4>
 
+// Define Ethernet and IPv4 headers
 header ethernet_t {
     bit<48> dstAddr;
     bit<48> srcAddr;
@@ -27,6 +28,7 @@ struct headers {
     ipv4_t ipv4;
 }
 
+// Store combined hash value (srcIP + destIP)
 struct metadata {
     bit<16> combined_hash_value;
 }
@@ -45,9 +47,29 @@ parser MyParser(packet_in packet, out headers hdr, inout metadata meta, inout st
 
 control MyIngress(inout headers hdr, inout metadata meta, inout standard_metadata_t standard_metadata) {
     // Implemet : ping command.
-    // Fix : Map below identified rules to MAC addresses so that routing happens
+    // Done : Mapped below identified rules to MAC addresses so that routing happens
+    // Error : Ping still not working.
+    // Mapping of egressPort to MAC address
+    action set_dst_mac(bit<48> mac) {
+        hdr.ethernet.dstAddr = mac;
+    }
+    
+    // Populate table with control plane commands
+    // Maps value between switch port and host MAC address.
+    table switch_port_to_mac {
+        key = {
+            standard_metadata.egress_spec: exact;
+        }
+        actions = {
+            set_dst_mac;
+        }
+        size = 1024;
+        default_action = set_dst_mac(0);
+    }
+
+    // Set egressPort
     action route_to_h1() {
-        standard_metadata.egress_spec = 1;
+        standard_metadata.egress_spec = 1; // Switch port value
     }
 
     action route_to_h2() {
@@ -59,10 +81,12 @@ control MyIngress(inout headers hdr, inout metadata meta, inout standard_metadat
     }
 
     apply {
+
+        // Compute hash value on (srcIP + destIP)
         bit<64> combined_ips = ((bit<64>)hdr.ipv4.srcAddr << 32) | (bit<64>)hdr.ipv4.dstAddr;
         meta.combined_hash_value = (bit<16>)(combined_ips % 65536);
 
-        // Make a decision based on LSB of the hash value
+        // egressPort decision based on hash value range.
         if (meta.combined_hash_value <= 21844) {
             route_to_h1();
         } else if (meta.combined_hash_value <= 43690) {
@@ -70,19 +94,16 @@ control MyIngress(inout headers hdr, inout metadata meta, inout standard_metadat
         } else {
             route_to_h3();
         }
+        switch_port_to_mac.apply();
     }
 }
 
 control MyEgress(inout headers hdr, inout metadata meta, inout standard_metadata_t standard_metadata) {
-    apply {
-        // Empty for now
-    }
+    apply {}
 }
 
 control MyChecksum(inout headers hdr, inout metadata meta) {
-    apply {
-        // Empty for now
-    }
+    apply {}
 }
 
 control MyDeparser(packet_out packet, in headers hdr) {
@@ -100,5 +121,3 @@ V1Switch(
     MyChecksum(),
     MyDeparser()
 ) main;
-
-// By using this method, the hash value calculated from the combination of source and destination IP addresses is used to make a routing decision directly in the P4 data plane, without needing any control plane configuration.

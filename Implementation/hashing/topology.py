@@ -6,6 +6,13 @@ h2 arp -s 10.1.2.5 00:00:00:00:00:03
 h3 arp -s 10.1.2.3 00:00:00:00:00:01
 h3 arp -s 10.1.2.4 00:00:00:00:00:02
 
+Control Plane commands:
+table_add switch_port_to_mac set_dst_mac 1 => 00:00:00:00:00:01
+table_add switch_port_to_mac set_dst_mac 2 => 00:00:00:00:00:02
+table_add switch_port_to_mac set_dst_mac 3 => 00:00:00:00:00:03
+
+
+
 """
 
 from mininet.net import Mininet

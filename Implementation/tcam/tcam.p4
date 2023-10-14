@@ -35,45 +35,36 @@ struct metadata {
     bit<8>  bucket;
 }
 
-
-
 parser MyParser(packet_in packet, out headers hdr, inout metadata meta, inout standard_metadata_t standard_metadata) {
     state start {
         packet.extract(hdr.ethernet);
         transition parse_ipv4;
     }
-    
     state parse_ipv4 {
         packet.extract(hdr.ipv4);
         transition compute_hash;
     }
-    
     state compute_hash {
-        meta.hash_value = hdr.ipv4.srcAddr % 256;  // Simple modulo-based hash
-        
+        meta.hash_value = hdr.ipv4.srcAddr % 256;
         transition accept;
     }
 }
-
-
 
 // Action to set the bucket based on match in the table
 action set_bucket(inout metadata meta , bit<8> determined_bucket) {
     meta.bucket = determined_bucket;
 }
 
-register<bit<32>>(256) ip_count_register; // Assuming a maximum of 16384 unique IP addresses to track
+register<bit<32>>(256) ip_count_register; 
 
-// P4 table for longest prefix match on hash value to determine bucket
 control MyIngress(inout headers hdr, inout metadata meta, inout standard_metadata_t standard_metadata) {
-    
      // Action to forward the packet based on MAC address
     action forward(bit<9> outPort) {
         standard_metadata.egress_spec = outPort;
     }
     
-    // L2 forwarding table
-    table l2_forwarding {
+    // Table mapping of MAC address and switch port for switch
+    table mac_to_switch_port_mapping {
         key = {
             hdr.ethernet.dstAddr: exact;
         }
@@ -108,18 +99,15 @@ control MyIngress(inout headers hdr, inout metadata meta, inout standard_metadat
         ip_count_register.read(current_count, meta.hash_value); // Read the current count for the src IP
         ip_count_register.write( meta.hash_value, current_count + 1); // Increment and write back
 
-        //ip_count_register.read(current_count, meta.hash_value); // Read the current count for the src IP
-        //ip_count_register.write(meta.hash_value, current_count + 1); // Increment and write back
+        //ip_count_register.read(current_count, meta.bucket); // Read the current count for the src IP
+        //ip_count_register.write(meta.bucket, current_count + 1); // Increment and write back
 
-        // Then, L2 forwarding to make sure packets are forwarded correctly
-        l2_forwarding.apply();
+        mac_to_switch_port_mapping.apply();
     }
 }
 
 control MyEgress(inout headers hdr, inout metadata meta, inout standard_metadata_t standard_metadata) {
-    apply {
-        // Any egress processing if needed
-    }
+    apply {     }
 }
 
 
