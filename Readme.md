@@ -67,3 +67,9 @@
         - This implementation can be extended for variety of flowkey combinations
             (srcIP + destIP), (srcIP + destMAC), (srcPort + destIP) and so on.
         - Knowing nature of hash function and specific flowkeys we are dealing with,can help in populating different control plane tables optimally.
+
+
+    INSTALL:
+        - P4 (apt)
+        - bmv2 (apt)
+        - mininet(pip)
