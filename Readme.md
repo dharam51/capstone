@@ -58,8 +58,9 @@
     - This double checks can replace bloom filter implementation(resource intensive) and more accurate because of false positive in bloom filter.
 
     TODO : 
-        1. Implement heavy flow key.
-        2. Implement different scenarios/examples.
+        1. Implement heavy flow key. - Done
+        2.  Improve current broken implementation.
+        3. Implement different scenarios/examples.
     
     Different Scenarios/Examples:
         - Multi level sketches can be implemented optimally using proposed optimizations.(univmon)
