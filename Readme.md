@@ -1,3 +1,5 @@
+    NOTE : Table content can only be controlled by switch_cli and not dynamically by P4 code. Entries can only be added by control plane and not data plane.
+    
     - This implementation is very minimum to understand implemented optimizations in below paper
         https://www.usenix.org/system/files/nsdi22-paper-namkung.pdf
         Paper implementation with algorithms is more complex.
@@ -50,14 +52,24 @@
         - Verification with switch logs - Success
         - Future : Explore more complex implementation with multi level sketches.
 
-    
+    **Heavy Flow Key**
+    - Hashed on srcIP address.
+    - Based on threshold and current count, update heavy hitter register
+    - This double checks can replace bloom filter implementation(resource intensive) and more accurate because of false positive in bloom filter.
 
     TODO : 
-        1. Implement heavy flow key.
-        2. Implement different scenarios/examples.
+        1. Implement heavy flow key. - Done
+        2.  Improve current broken implementation.
+        3. Implement different scenarios/examples.
     
     Different Scenarios/Examples:
         - Multi level sketches can be implemented optimally using proposed optimizations.(univmon)
         - This implementation can be extended for variety of flowkey combinations
             (srcIP + destIP), (srcIP + destMAC), (srcPort + destIP) and so on.
         - Knowing nature of hash function and specific flowkeys we are dealing with,can help in populating different control plane tables optimally.
+
+
+    INSTALL:
+        - P4 (apt)
+        - bmv2 (apt)
+        - mininet(pip)
